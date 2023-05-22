@@ -5,3 +5,4 @@ requests
 django-cors-headers
 mysqlclient
 PyJWT==1.7.1
+daphne
