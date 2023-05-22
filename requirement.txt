@@ -1,0 +1,7 @@
+django
+djangorestframework
+pyyaml
+requests
+django-cors-headers
+mysqlclient
+PyJWT==1.7.1
