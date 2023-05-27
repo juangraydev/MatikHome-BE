@@ -70,3 +70,14 @@ class HTTP403Error(BaseException):
         self.err_resp[idf.ERR][idf.STATUS_CODE] = 403
 
         super(BaseException, self).__init__(self.err_resp, *args, **kwargs)
+
+
+class RoomDeleteError(BaseException):
+    def __init__(self, *args, **kwargs):
+        self.err_resp[idf.ERR][idf.ERR_CODE] = "10"
+        self.err_resp[idf.ERR][idf.ERR_MSG_ID] = "ERR_ROOM_DELETE"
+        self.err_resp[idf.ERR][idf.ERR_MSG] = "Unable to delete room"
+        self.err_resp[idf.ERR][idf.ERR_DETAIL] = "Please transfer the devices to other room"
+        self.err_resp[idf.ERR][idf.STATUS_CODE] = 409
+
+        super(BaseException, self).__init__(self.err_resp, *args, **kwargs)

@@ -49,6 +49,19 @@ class HomesManagement(Repository):
             raise exception
         return saved
     
+    def edit_house(self, data):
+        updated={}
+        try:
+            criteria = QueryFilter(id=data['id'])
+            response = self.find_by_criteria(criteria)
+            instance = common.get_value(idf.INSTANCES, response)[0]
+            updated = self.update(data, instance)
+            # response = super().save_or_update(data,criteria)
+            # updated = common.get_value(idf.SERIALIZED, response)
+        except Exception as exception:
+            raise exception
+        return updated
+    
     def find_all(self):
         resp_data = []
         try:
@@ -80,8 +93,43 @@ class RoomManagement(Repository):
             roomTemp[idf.OBJ_TYPE] = room[idf.OBJ_TYPE]
             rooms_list.append(roomTemp)
 
-
         return rooms_list
+    
+    def add_rooms_by_house(self, data):
+        resp_data = {}
+        try:
+            room={
+                "home": data['home_id'],
+                idf.NAME: data['room']['name'],
+                idf.OBJ_TYPE: data['room']['type']
+            }
+            response = super().save(room)
+            resp_data = common.get_value(idf.SERIALIZED, response)
+        except Exception as exception:
+            raise exception
+
+        return resp_data
+    
+    def edit_room(self, data):
+        
+        criteria = QueryFilter(id=data['id'])
+
+        response = super().save_or_update(data,criteria)
+        rooms_instance = common.get_value(idf.SERIALIZED, response)
+            
+        return rooms_instance
+    
+    def delete_room(self, id):
+        resp_data = {}
+        try:
+            criteria = QueryFilter(id=id)
+
+            response = super().delete(criteria)
+            resp_data = common.get_value(idf.SERIALIZED, response)
+        except Exception as exception:
+            raise RoomDeleteError
+            
+        return resp_data
 
 
 class HomeUserAccessManagement(Repository):

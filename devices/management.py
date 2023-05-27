@@ -49,7 +49,8 @@ class DevicesManagement(Repository):
     
     def find_by_homeId_roomId(self, home_id, room_id):
         resp_data = []
-
+        
+        print("[room_id]:",room_id)
         criteria = []
         try:
             
