@@ -101,12 +101,12 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'matik_db',
+        'NAME': 'railway',
         'USER': 'root',
-        'PASSWORD': '',  # TODO: this should be retrieved
+        'PASSWORD': 'PFriq1CEYtDFbwnj4wqm',  # TODO: this should be retrieved
         # from environment variable during production
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'HOST': 'containers-us-west-51.railway.app',
+        'PORT': '7336',
         'OPTIONS': {
             'sql_mode': 'traditional'
         }
