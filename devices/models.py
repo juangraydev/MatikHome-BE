@@ -1,6 +1,7 @@
 from django.db import models
 from homes.models import Homes
 from homes.models import Rooms
+import uuid
 from django.utils.translation import gettext_lazy as _
 from core.util.model_to_dict import ModelToDictionary
 # Create your models here.
@@ -12,7 +13,7 @@ class Devices(models.Model, ModelToDictionary):
         CONTROL = 'CTRL', _('Control')
         SECURITY = 'SECU', _('Security')
 
-    id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     key = models.CharField(max_length=100, unique=True)
     home = models.ForeignKey(Homes, models.DO_NOTHING, null=True)
     room = models.ForeignKey(Rooms, models.DO_NOTHING, null=True)
@@ -28,7 +29,7 @@ class Devices(models.Model, ModelToDictionary):
         return self.id
     
 class Channels(models.Model, ModelToDictionary):
-    id = models.AutoField(primary_key=True, unique=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, null=True)
     device = models.ForeignKey(Devices, models.DO_NOTHING)
     room = models.ForeignKey(Rooms, models.DO_NOTHING)
