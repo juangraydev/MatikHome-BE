@@ -3,7 +3,7 @@ djangorestframework
 pyyaml
 requests
 django-cors-headers
-mysqlclient
+mysqlclient=2.1.1
 PyJWT==1.7.1
 daphne
 channels
