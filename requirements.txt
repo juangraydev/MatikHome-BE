@@ -8,3 +8,5 @@ PyJWT==1.7.1
 daphne
 channels
 gunicorn
+psycopg2
+uuid

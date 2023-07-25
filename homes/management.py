@@ -10,6 +10,7 @@ import json
 from django.conf import settings
 from core.util.custom_exceptions import *
 
+from user.management import UserManagement 
 
 from core.util import common
 from core.auth.token_authentication import TokenAuthentication
@@ -32,8 +33,10 @@ class HomesManagement(Repository):
         response = super().find_by_criteria(criteria)
         house_list = common.get_value(idf.SERIALIZED, response)[0]
         rooms_list = RoomManagement().get_rooms_list_by_house(house_list[idf.OBJ_ID])
+        member_list = HomeUserAccessManagement().get_home_members(house_list[idf.OBJ_ID])
 
         house_list[idf.OBJ_ROOMS] = rooms_list
+        house_list[idf.OBJ_MEMBERS] = member_list
        
         # get_rooms_list_by_house
         return house_list
@@ -65,9 +68,13 @@ class HomesManagement(Repository):
     def find_all(self):
         resp_data = []
         try:
-            resp_data = super().find_all()
+            response = super().find_all()
+
+            for home in response:
+                resp_home = self.get_house_list_by_id(home[idf.OBJ_ID])
+                resp_data.append(resp_home)
         except Exception as error:
-            print("[Error]")
+            print("[Error][Home]: ${error}")
         
         return resp_data
 
@@ -143,15 +150,42 @@ class HomeUserAccessManagement(Repository):
     
     def get_user_house(self, userId):
         house_list = []
-        criteria = QueryFilter(user_id=userId)
-        response = super().find_by_criteria(criteria)
-        user_home_access_list = common.get_value(idf.SERIALIZED, response)
-        for house in user_home_access_list:
-            print(house['home'])
-            home_temp = HomesManagement().get_house_list_by_id(house['home'])
-            house_list.append(home_temp) 
-        return house_list
+        try:
+            criteria = QueryFilter(user=str(userId))
+            response = super().find_by_criteria(criteria)
+            user_home_access_list = common.get_value(idf.SERIALIZED, response)
+            for house in user_home_access_list:
+                home_temp = HomesManagement().get_house_list_by_id(house['home'])
+                house_list.append(home_temp) 
 
+        except Exception as err:
+            print(err)
+            raise err
+        return house_list
+    
+    def get_home_members(self, homeId):
+        member_list = []
+        user_mgnt = UserManagement()
+        try: 
+            
+            criteria = QueryFilter(home=homeId)
+            response = super().find_by_criteria(criteria)
+            response = common.get_value(idf.SERIALIZED, response)
+
+            for member_access in response:
+                member = user_mgnt.find_by_id(member_access['user'])
+                member_data = {
+                    idf.OBJ_ID: member['id'],
+                    'full_name': member['first_name'] + " " + member['last_name'],
+                    'role': member_access['role']
+                }
+                member_list.append(member_data)
+        
+        except Exception as err:
+
+            print(err)
+
+        return member_list
 
     def add_user_house(self, userId, homeId):
         saved = {}

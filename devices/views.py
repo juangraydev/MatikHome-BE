@@ -2,7 +2,6 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from devices.management import DevicesManagement, ChannelsManagement
-
 from core.util.custom_exceptions import *
 
 from core.util.common import *
@@ -19,8 +18,30 @@ class DeviceAPI(APIView):
                                        resp_data=device_resp,
                                        resp_details=resp_details)
         return Response(resp_payload, status=status.HTTP_200_OK)
+    
+    def post(self, request):
 
+        device_management = DevicesManagement()
+        device_resp = device_management.create_device(request.data)
 
+        resp_details = create_response_details()
+        resp_payload = create_response(
+                                       resp_data={},
+                                       resp_details=resp_details)
+        return Response(resp_payload, status=status.HTTP_200_OK)
+
+class DeviceHomeAPI(APIView):
+    
+    def get(self, request, home_id):
+    
+        device_management = DevicesManagement()
+        device_resp = device_management.find_by_homeId(home_id=home_id)
+
+        resp_details = create_response_details()
+        resp_payload = create_response(
+                                       resp_data=device_resp,
+                                       resp_details=resp_details)
+        return Response(resp_payload, status=status.HTTP_200_OK)
 
 class DeviceESPAPI(APIView):
     

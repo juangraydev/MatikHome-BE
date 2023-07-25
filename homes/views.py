@@ -87,15 +87,6 @@ class RoomAPI(APIView):
                                        resp_details=resp_details)
         return Response(resp_payload, status=status.HTTP_200_OK)
     
-    def put(self, request):
-        room_management = RoomManagement()
-        rooms = room_management.edit_room(request.data)
-        resp_details = create_response_details()
-        resp_payload = create_response(
-                                       resp_data={},
-                                       resp_details=resp_details)
-        return Response(resp_payload, status=status.HTTP_200_OK)
-    
     def delete(self, request, room_id):
         room_management = RoomManagement()
         rooms = room_management.delete_room(room_id)

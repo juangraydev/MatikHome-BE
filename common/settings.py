@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '-8p5r9=ny#by!_+b=6i*#gq08b-!^*y$%9%6wy3(kjucmb5ar)'
+SECRET_KEY = 'matik_home'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -101,15 +101,12 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'railway',
+        'NAME': 'matik_db',
         'USER': 'root',
-        'PASSWORD': 'PFriq1CEYtDFbwnj4wqm',  # TODO: this should be retrieved
+        'PASSWORD': '',  # TODO: this should be retrieved
         # from environment variable during production
-        'HOST': 'containers-us-west-51.railway.app',
-        'PORT': '7336',
-        'OPTIONS': {
-            'sql_mode': 'traditional'
-        }
+        'HOST': '127.0.0.1',
+        'PORT': '3306'
     },
 }
 

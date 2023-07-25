@@ -9,6 +9,8 @@ from devices.serializers import *
 import json
 from django.conf import settings
 from core.util.custom_exceptions import *
+import uuid
+
 
 
 from core.util import common
@@ -25,6 +27,25 @@ class DevicesManagement(Repository):
                         model=Devices,
                         serializer=DevicesSerializer)
         super().__init__(module=module)
+
+    def create_device(self, data):
+        saved = {}
+        channel_mgnt = ChannelsManagement()
+        try:
+            save_data = {
+                'key': data['key'],
+                'home': data['home']
+            }
+            saved = super().save(save_data)
+
+
+            channel_mgnt.createChannels(saved, data['channel'])
+
+        except Exception as exception:
+            print("[Error]", exception)
+            raise exception
+        
+        return saved
     
     def find_all(self):
         resp_data = []
@@ -47,10 +68,9 @@ class DevicesManagement(Repository):
             raise error
         return resp_data
     
-    def find_by_homeId_roomId(self, home_id, room_id):
+    def find_by_all_homeId(self, home_id):
         resp_data = []
         
-        print("[room_id]:",room_id)
         criteria = []
         try:
             
@@ -61,8 +81,12 @@ class DevicesManagement(Repository):
 
             for device in resp_device:
                 channel_management = ChannelsManagement()
-                channel_resp = channel_management.find_by_device_id_room_id(device_id=device['id'], room_id=room_id)
+                channel_resp = channel_management.find_by_device_id(device_id=device['id'])
                 for channel in channel_resp:
+                    channel['id'] = str(channel['id'])
+                    channel['device'] = str(channel['device'])
+                    channel['room'] = str(channel['room'])
+
                     resp_data.append(channel)
 
             print("channel_resp",resp_data)
@@ -74,6 +98,22 @@ class DevicesManagement(Repository):
             raise error
         return resp_data
     
+    def find_by_homeId(self, home_id):
+        resp_data = []
+        try:
+            # print(type(uuid.UUID(home_id)), type(home_id))
+            criteria = QueryFilter(home=str(home_id))
+            response = super().find_by_criteria(criteria)
+            resp_data = common.get_value(idf.SERIALIZED, response)[0]
+            resp_data['home'] = str(resp_data['home'])
+            # print("[Device][Retrived] There is " + len(resp_data) + " Devices Found in home_id " + home_id)
+        except IndexError:
+            resp_data=[]
+            print("[Device][Retrived] There is no device found in home_id",home_id)
+        except Exception as error:
+            print("[Device][Error] Something went wrong.", error)
+            raise error
+        return resp_data
 
 
 class ChannelsManagement(Repository):
@@ -89,12 +129,9 @@ class ChannelsManagement(Repository):
         super().__init__(module=module)
 
 
-    def find_by_device_id_room_id(self, device_id, room_id):
+    def find_by_device_id(self, device_id):
         criteria = []
-        if(room_id == "ALL"):
-            criteria = QueryFilter(device=device_id)
-        else:
-            criteria = QueryFilter(device=device_id, room=room_id)
+        criteria = QueryFilter(device=device_id)
         
          
         response = super().find_by_criteria(criteria)
@@ -127,3 +164,27 @@ class ChannelsManagement(Repository):
         for channel in channels:
             channel_resp.append(json.loads(channel['status']))
         return {"channels": channel_resp}
+    
+    def find_by_id(self, id):
+        criteria = QueryFilter(id=id)
+        channel_resp = []
+        response = super().find_by_criteria(criteria)
+        channel_resp = common.get_value(idf.SERIALIZED, response)[0]
+        return channel_resp
+    
+
+    def createChannels(self, device, count):
+        i = 0
+        try:
+            while i < count:
+                i += 1
+                saved_data = {
+                    'name': 'channel '+str(i),
+                    'device': str(device.id),
+                    'room': '',
+                    'status': '0'
+                }
+                super().save(saved_data)
+        except Exception as error:
+            print("[Error]",error)
+            raise error

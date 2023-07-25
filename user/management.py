@@ -13,8 +13,6 @@ from core.util.custom_exceptions import *
 
 from core.util import common
 from core.auth.token_authentication import TokenAuthentication
-from homes.management import HomesManagement
-from homes.management import HomeUserAccessManagement
 
 class UserManagement(Repository):
     """
@@ -39,14 +37,31 @@ class UserManagement(Repository):
 
         return resp_data
     
+    def find_by_id(self, user_id):
+        try:
+            criteria = QueryFilter(id=user_id)
+            response = super().find_by_criteria(criteria)
+            resp_data = common.get_value(idf.SERIALIZED, response)[0]
+        except Exception as error:
+            print("[Error] Username not Found", error)
+            raise HTTP401Error
+
+        return resp_data
+    
     def find_all(self):
         resp_data = []
         try:
             resp_data = super().find_all()
+            for row in resp_data:
+                row[idf.NAME] = row[idf.OBJ_FIRST_NAME] + " " + row[idf.OBJ_LAST_NAME]
         except Exception as error:
-            print("[Error]")
+            print("[ERROR][USERS] ${error}")
            
         return resp_data
+    
+    def find_by_home_id(self):
+
+        return []
     
     def add_user(self):
         resp_data = []
@@ -61,9 +76,10 @@ class UserManagement(Repository):
         resp_data={}
         token_auth = TokenAuthentication()
         try:
-            user = self.find_by_username(request[idf.USERNAME])
-            decrypted_pass = token_auth.decrypt_pass( str.encode(user[idf.OBJ_PASSWORD]) )
-            if(not decrypted_pass[idf.OBJ_PASSWORD] == request[idf.OBJ_PASSWORD]):
+            user = self.find_by_username(request[idf.OBJ_USERNAME])
+            req_pass = jwt.decode(request[idf.OBJ_PASSWORD].encode('UTF-8'), settings.SECRET_KEY)
+            decrypted_pass = jwt.decode(user[idf.OBJ_PASSWORD].encode('UTF-8'), settings.SECRET_KEY)
+            if(not decrypted_pass[idf.OBJ_PASSWORD] == req_pass[idf.OBJ_PASSWORD]):
                 raise HTTP401Error
             resp_data[idf.TOKEN] = token_auth.encode_token(user)
         except Exception as error:
@@ -76,21 +92,16 @@ class UserManagement(Repository):
         resp_data={}
         data_obj = {
             idf.OBJ_ID: "",
-            idf.NAME: request[idf.NAME],
-            idf.USERNAME: request[idf.USERNAME],
+            idf.OBJ_FIRST_NAME: request[idf.OBJ_FIRST_NAME],
+            idf.OBJ_LAST_NAME: request[idf.OBJ_LAST_NAME],
+            idf.OBJ_USERNAME: request[idf.OBJ_USERNAME],
+            idf.OBJ_PASSWORD: request[idf.OBJ_PASSWORD],
             idf.ROLE: 0,
         }
         token_auth = TokenAuthentication()
-        home = HomesManagement()
-        access = HomeUserAccessManagement()
         try:
-            encrypted_pass = token_auth.encrypt_pass(request[idf.OBJ_PASSWORD])
-            data_obj[idf.OBJ_PASSWORD] = encrypted_pass.decode('UTF-8')
-            user_resp = super().save(data_obj)
-            home_resp = home.add_house(name=request[idf.OBJ_HOUSE_NAME])
-            access_resp = access.add_user_house(userId=user_resp.id, homeId=home_resp.id)
+            user_saved = super().save(data_obj)
             resp_data = self.login(request=request)
-            # access
             
         except Exception as error:
             print("[Error]", error)

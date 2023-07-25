@@ -55,7 +55,7 @@ class TokenAuthentication():
         return jwt.encode({idf.OBJ_PASSWORD: password}, settings.SECRET_KEY, algorithm="HS256") 
     
     def decrypt_pass(self, user_pass):
-        return jwt.decode(user_pass, settings.SECRET_KEY,
+        return jwt.decode({idf.OBJ_PASSWORD: user_pass}, settings.SECRET_KEY, algorithm="HS256",
                           options={"verify_exp": False})
 
     def get_sso_id(self, request):
