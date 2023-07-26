@@ -8,7 +8,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 
 import devices.routing
 
-os.environ.setdefault('DJANG_SETTING_MODULE', 'common.settings')
+os.environ.setdefault('DJANGO_SETTING_MODULE', 'common.settings')
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
