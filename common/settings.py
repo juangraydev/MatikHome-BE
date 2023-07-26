@@ -89,7 +89,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
         "CONFIG": {
-            "hosts":[("matikhome-be-production.up.railway.app", 6379)],
+            "hosts":[("redis", 6379)],
         }
     }
 }
