@@ -26,7 +26,7 @@ class Rooms(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'homes'
+        db_table = 'rooms'
             
 
     def __str__(self):
