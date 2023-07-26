@@ -5,8 +5,7 @@ requests
 django-cors-headers
 mysqlclient==2.1.1
 PyJWT==1.7.1
-daphne
-channels
+channels==3.0.5
 gunicorn
 psycopg2
 uuid
