@@ -14,7 +14,7 @@ class User(models.Model, ModelToDictionary):
    
     class Meta:
         managed = True
-        db_table = 'User'
+        db_table = 'user'
             
 
     def __str__(self):

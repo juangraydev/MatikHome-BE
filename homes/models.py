@@ -12,7 +12,7 @@ class Homes(models.Model, ModelToDictionary):
 
     class Meta:
         managed = True
-        db_table = 'Homes'
+        db_table = 'homes'
             
 
     def __str__(self):
@@ -26,7 +26,7 @@ class Rooms(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'Rooms'
+        db_table = 'homes'
             
 
     def __str__(self):
@@ -43,7 +43,7 @@ class HomeUserAccess(models.Model, ModelToDictionary):
 
     class Meta:
         managed = True
-        db_table = 'HomeUserAccess'
+        db_table = 'home_user_access'
 
     def __str__(self):
         return self.id
