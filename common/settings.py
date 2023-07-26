@@ -87,7 +87,10 @@ ASGI_APPLICATION = 'common.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        "CONFIG": {
+            "hosts":[("matikhome-be-production.up.railway.app", 6379)],
+        }
     }
 }
 

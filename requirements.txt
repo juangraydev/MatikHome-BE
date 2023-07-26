@@ -10,3 +10,4 @@ channels
 gunicorn
 psycopg2
 uuid
+redis
