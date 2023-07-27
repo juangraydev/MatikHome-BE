@@ -87,7 +87,7 @@ ASGI_APPLICATION = 'common.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+        'BACKEND': 'channels_redis.pubsub.RedisPubSubChannelLayer'
     },
     "CONFIG": {
         "hosts": [("localhost", 6379)],
