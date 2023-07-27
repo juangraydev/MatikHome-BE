@@ -90,7 +90,7 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer'
     },
     "CONFIG": {
-        "hosts": [("0.0.0.0", 6379)],
+        "hosts": [("localhost", 6379)],
     },
 }
 
