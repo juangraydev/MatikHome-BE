@@ -87,10 +87,10 @@ ASGI_APPLICATION = 'common.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.pubsub.RedisPubSubChannelLayer'
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
     },
     "CONFIG": {
-        "hosts": [("localhost", 6379)],
+        "hosts": [("127.0.0.1", 6379)],
     },
 }
 
@@ -109,18 +109,6 @@ DATABASES = {
         'PORT': '7336'
     },
 }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'matik_db',
-#         'USER': 'root',
-#         'PASSWORD': '',  # TODO: this should be retrieved
-#         # from environment variable during production
-#         'HOST': '127.0.0.1',
-#         'PORT': '3306'
-#     },
-# }
 
 
 # Password validation
