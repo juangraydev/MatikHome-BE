@@ -21,7 +21,6 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('key', models.CharField(max_length=100, unique=True)),
                 ('type', models.CharField(choices=[('MNTR', 'Monitor'), ('CTRL', 'Control'), ('SECU', 'Security')], max_length=100, null=True)),
-                ('status', models.JSONField(max_length=100, null=True)),
                 ('home', models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='homes.homes')),
                 ('room', models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='homes.rooms')),
             ],

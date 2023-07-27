@@ -36,6 +36,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -47,7 +48,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'user',
     'homes',
-    'channels',
     'devices',
 ]
 
@@ -90,7 +90,7 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer'
     },
     "CONFIG": {
-        "hosts": [("127.0.0.1", 6379)],
+        "hosts": [("containers-us-west-202.railway.app", 7866)],
     },
 }
 
