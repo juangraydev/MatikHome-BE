@@ -8,8 +8,8 @@ from core.util.model_to_dict import ModelToDictionary
 
 class Devices(models.Model, ModelToDictionary):
     
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    key = models.UUIDField(default=uuid.uuid4, unique=True, null=False)
+    id = models.AutoField(primary_key=True, editable=False)
+    key = models.CharField(max_length=100, null=False, unique=True)
     home = models.ForeignKey(Homes, models.DO_NOTHING, null=True)
 
     class Meta:
@@ -21,7 +21,7 @@ class Devices(models.Model, ModelToDictionary):
         return self.id
     
 class Channels(models.Model, ModelToDictionary):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True, unique=True, editable=False)
     name = models.CharField(max_length=100, null=True)
     device = models.ForeignKey(Devices, models.DO_NOTHING)
     room = models.ForeignKey(Rooms, models.DO_NOTHING, null=True)

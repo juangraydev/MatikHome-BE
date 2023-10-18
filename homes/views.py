@@ -47,7 +47,7 @@ class HomeAPI(APIView):
         home_name = request.data['name']
         token_key = token_auth.extract_bearer(request.META[idf.HTTP_AUTHORIZATION])
         user_instance =token_auth.decode_token(token_key)
-        home = homes_management.add_house(name=home_name)
+        home = homes_management.add_house(data=request.data)
         access_resp = access.add_user_house(userId=user_instance['id'], homeId=home.id)
       
         resp_details = create_response_details()

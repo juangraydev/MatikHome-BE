@@ -10,6 +10,8 @@ import json
 from django.conf import settings
 from core.util.custom_exceptions import *
 
+from homes.management import *
+
 
 from core.util import common
 from core.auth.token_authentication import TokenAuthentication
@@ -54,8 +56,9 @@ class UserManagement(Repository):
             resp_data = super().find_all()
             for row in resp_data:
                 row[idf.NAME] = row[idf.OBJ_FIRST_NAME] + " " + row[idf.OBJ_LAST_NAME]
+                row[idf.OBJ_PASSWORD] = "12345678"
         except Exception as error:
-            print("[ERROR][USERS] ${error}")
+            print("[ERROR][USERS] Error")
            
         return resp_data
     
@@ -63,13 +66,41 @@ class UserManagement(Repository):
 
         return []
     
-    def add_user(self):
+    def add_user(self, data):
         resp_data = []
         try:
-            resp_data = super().find_all()
+            # resp_data = super().find_all()
+            token_auth = TokenAuthentication()
+            userInfoDecoded = jwt.decode(data['userInfo'], settings.SECRET_KEY)
+            self.register(request=userInfoDecoded['userInfo'])
         except Exception as error:
-            print("[Error]")
+            print("[Error]", error)
+            raise error
            
+        return userInfoDecoded
+
+    def edit_user(self, data):
+        resp_data = []
+        try:
+            userInfoDecoded = jwt.decode(data['userInfo'], settings.SECRET_KEY)['userInfo']
+            criteria = QueryFilter(id=userInfoDecoded['id'])
+            response = super().find_by_criteria(criteria)
+            instance = common.get_value(idf.INSTANCES, response)[0]
+            serialized = common.get_value(idf.SERIALIZED, response)[0]
+            if userInfoDecoded[idf.OBJ_PASSWORD] == '12345678':
+                userInfoDecoded[idf.OBJ_PASSWORD] = serialized[idf.OBJ_PASSWORD]
+                resp_data = super().update(userInfoDecoded, instance)
+            else:
+                userInfoDecoded[idf.OBJ_PASSWORD] = str(jwt.encode({idf.OBJ_PASSWORD: userInfoDecoded[idf.OBJ_PASSWORD]}, settings.SECRET_KEY), 'utf-8')
+                resp_data = super().update(userInfoDecoded, instance)
+
+            
+
+        except Exception as error:
+            print("[Error]", error)
+            raise error
+        
+
         return resp_data
 
     def login(self, request):
@@ -91,21 +122,36 @@ class UserManagement(Repository):
     def register(self, request):
         resp_data={}
         data_obj = {
-            idf.OBJ_ID: "",
             idf.OBJ_FIRST_NAME: request[idf.OBJ_FIRST_NAME],
             idf.OBJ_LAST_NAME: request[idf.OBJ_LAST_NAME],
             idf.OBJ_USERNAME: request[idf.OBJ_USERNAME],
             idf.OBJ_PASSWORD: request[idf.OBJ_PASSWORD],
-            idf.ROLE: 0,
+            idf.ROLE: request[idf.OBJ_ROLE] or 0,
         }
-        token_auth = TokenAuthentication()
         try:
-            user_saved = super().save(data_obj)
-            resp_data = self.login(request=request)
+            user = super().save(data_obj)
+
+            default_home =HomesManagement().add_house(name="Home")
+            home_access = HomeUserAccessManagement().add_user_house(userId=user.id, homeId=default_home.id) # Add User to Home 
+            # resp_data = self.login(request=request)
             
         except Exception as error:
             print("[Error]", error)
-            raise HTTP401Error 
+            raise error 
         return resp_data
     
     
+
+    def deleteUser(self, userId):
+        resp_data = {}
+        try:
+            home_access_mgnt = HomeUserAccessManagement()
+            home_access_mgnt.delete_user_access(userId=userId)
+
+            criteria = QueryFilter(id=userId)
+            response = super().delete(criteria)
+            resp_data = common.get_value(idf.SERIALIZED, response)
+        except Exception as error:
+            print("[Error] Username not Found", error)
+            raise HTTP401Error
+        return resp_data

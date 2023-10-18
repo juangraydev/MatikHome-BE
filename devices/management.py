@@ -15,6 +15,7 @@ import uuid
 
 from core.util import common
 from core.auth.token_authentication import TokenAuthentication
+from homes.management import *
 
 class DevicesManagement(Repository):
     """
@@ -34,7 +35,7 @@ class DevicesManagement(Repository):
         try:
             save_data = {
                 'key': data['key'],
-                'home': data['home']
+                'home': data['home_id']
             }
             saved = super().save(save_data)
 
@@ -47,12 +48,46 @@ class DevicesManagement(Repository):
         
         return saved
     
-    def find_all(self):
+    def update_device(self, data):
         resp_data = []
         try:
+            criteria = QueryFilter(id=data['id'])
+            response = super().find_by_criteria(criteria)
+            instance = common.get_value(idf.INSTANCES, response)[0]
+            save_data = {
+                'id': data['id'],
+                'key': data['key'],
+                'home': data['home_id']
+            }
+            resp_data = super().update(save_data, instance)
+
+        except Exception as err:
+            raise err
+
+
+        return resp_data
+
+    
+    def find_all(self):
+        resp_data = []
+        home_management = HomesManagement()
+        channel_management = ChannelsManagement()
+        try:
             resp_data = super().find_all()
+            
+            for device in resp_data:
+                channel = channel_management.find_by_device_id(device['id'])
+                device['channel'] = len(channel)
+                device['home']
+                if device['home']:
+                    home = home_management.get_house_list_by_id( device['home'].hex)
+                    device['home'] = home
+                    device['home_id'] = home['id']
+                    print(device['home'])
+
+            
         except Exception as error:
-            print("[Error]")
+            print("[Error]", error)
         
         return resp_data
     
@@ -115,10 +150,22 @@ class DevicesManagement(Repository):
             raise error
         return resp_data
 
+    def deleteDevice(self, device_id):
+        try:
+            criteria = QueryFilter(id=device_id)
+            ChannelsManagement().deleteChannel(device_id=device_id)
+            super().delete(criteria)
+            print("Successfully Deleting Device:", device_id)
+
+        except Exception as err:
+            print(err)
+
+        return device_id
+
 
 class ChannelsManagement(Repository):
     """
-    Handles CRUD Logic Functionalities for Rooms
+    Handles CRUD Logic Functionalities for Channel
     """
 
     def __init__(self):
@@ -188,3 +235,15 @@ class ChannelsManagement(Repository):
         except Exception as error:
             print("[Error]",error)
             raise error
+        
+
+    def deleteChannel(self, device_id):
+        try:
+            criteria = QueryFilter(device=device_id)
+            super().delete(criteria)
+            print("Successfully Deleting Device Channel:", device_id)
+
+        except Exception as err:
+            print(err)
+
+        return device_id

@@ -37,7 +37,6 @@ ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     'channels',
-    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -110,6 +109,17 @@ DATABASES = {
     },
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'matik_db',
+#         'USER': 'root',
+#         'PASSWORD': '',  # TODO: this should be retrieved
+#         # from environment variable during production
+#         'HOST': '127.0.0.1',
+#         'PORT': '3306'
+#     },
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators

@@ -10,7 +10,6 @@ import json
 from django.conf import settings
 from core.util.custom_exceptions import *
 
-from user.management import UserManagement 
 
 from core.util import common
 from core.auth.token_authentication import TokenAuthentication
@@ -41,13 +40,21 @@ class HomesManagement(Repository):
         # get_rooms_list_by_house
         return house_list
     
-    def add_house(self, name):
+    def add_house(self, data):
         saved={}
         try:
-            save_data= {
-                idf.OBJ_NAME: name
+            save_data= {    
+                idf.OBJ_NAME: data['name'],
+                idf.OBJ_ADDRESS: data['address']
             }
             saved = super().save(data=save_data)
+            # RoomManagement().add_rooms_by_house()
+            for room in data['rooms']:
+                room_data = {
+                    "home_id": saved.id,
+                    "room": room
+                }
+                RoomManagement().add_rooms_by_house(data=room_data)
         except Exception as exception:
             raise exception
         return saved
@@ -140,7 +147,7 @@ class RoomManagement(Repository):
 
 
 class HomeUserAccessManagement(Repository):
-
+    
     def __init__(self):
         
         module = Module(name="HomeUserAccess",
@@ -164,6 +171,7 @@ class HomeUserAccessManagement(Repository):
         return house_list
     
     def get_home_members(self, homeId):
+        from user.management import UserManagement 
         member_list = []
         user_mgnt = UserManagement()
         try: 
@@ -201,3 +209,10 @@ class HomeUserAccessManagement(Repository):
         
         return saved
     
+    def delete_user_access(self, userId): 
+        try:
+            criteria = QueryFilter(user=userId)
+            response = super().delete(criteria)
+            response = common.get_value(idf.SERIALIZED, response)
+        except Exception as err:
+            print("[User Access]", err)
