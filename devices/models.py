@@ -33,4 +33,4 @@ class Channels(models.Model, ModelToDictionary):
             
 
     def __str__(self):
-        return self.status
+        return self.id

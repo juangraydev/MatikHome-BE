@@ -79,6 +79,7 @@ OBJ_ROOMS = "rooms"
 OBJ_HOUSE_NAME = "housename"
 OBJ_TYPE = "type"
 OBJ_MEMBERS = "members"
+OBJ_DEVICES = "devices"
 OBJ_NAME = "name"
 OBJ_ADDRESS = "address"
 

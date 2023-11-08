@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from homes.management import *
+from user.management import *
 
 from core.util.custom_exceptions import *
 
@@ -90,6 +91,39 @@ class RoomAPI(APIView):
     def delete(self, request, room_id):
         room_management = RoomManagement()
         rooms = room_management.delete_room(room_id)
+        resp_details = create_response_details()
+        resp_payload = create_response(
+                                       resp_data={},
+                                       resp_details=resp_details)
+        return Response(resp_payload, status=status.HTTP_200_OK)
+
+class UserAPI(APIView):
+
+    def post(self, request, home_id):
+        home_user_access = HomeUserAccessManagement()
+        user_mgnt = UserManagement()
+        user = user_mgnt.find_by_username(username=request.data[idf.OBJ_USERNAME][1:])
+        home_access = home_user_access.invite_home_member(home_id=home_id, user=user)
+        resp_details = create_response_details()
+        resp_payload = create_response(
+                                       resp_data=request.data,
+                                       resp_details=resp_details)
+        return Response(resp_payload, status=status.HTTP_200_OK)
+    
+    def put(self, request, home_id):
+        home_user_access = HomeUserAccessManagement()
+        user_mgnt = UserManagement()
+        home_access = home_user_access.update_user_role(home_id=home_id, user=request.data)
+        resp_details = create_response_details()
+        resp_payload = create_response(
+                                       resp_data={},
+                                       resp_details=resp_details)
+        return Response(resp_payload, status=status.HTTP_200_OK)
+    
+    def delete(self, request, home_id, member_id):
+        home_user_access = HomeUserAccessManagement()
+        user_mgnt = UserManagement()
+        home_user_access.delete_user_access(homeId=home_id, userId=member_id)
         resp_details = create_response_details()
         resp_payload = create_response(
                                        resp_data={},

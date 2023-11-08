@@ -1,5 +1,6 @@
 import logging
 import jwt
+
 from core.repository.repository import Repository
 from core.repository.repository import Module
 from django.db.models import Q as QueryFilter, Value
@@ -72,7 +73,7 @@ class UserManagement(Repository):
             # resp_data = super().find_all()
             token_auth = TokenAuthentication()
             userInfoDecoded = jwt.decode(data['userInfo'], settings.SECRET_KEY)
-            self.register(request=userInfoDecoded['userInfo'])
+            self.createUser(request=userInfoDecoded['userInfo'])
         except Exception as error:
             print("[Error]", error)
             raise error
@@ -93,8 +94,6 @@ class UserManagement(Repository):
             else:
                 userInfoDecoded[idf.OBJ_PASSWORD] = str(jwt.encode({idf.OBJ_PASSWORD: userInfoDecoded[idf.OBJ_PASSWORD]}, settings.SECRET_KEY), 'utf-8')
                 resp_data = super().update(userInfoDecoded, instance)
-
-            
 
         except Exception as error:
             print("[Error]", error)
@@ -130,10 +129,9 @@ class UserManagement(Repository):
         }
         try:
             user = super().save(data_obj)
-
-            default_home =HomesManagement().add_house(name="Home")
-            home_access = HomeUserAccessManagement().add_user_house(userId=user.id, homeId=default_home.id) # Add User to Home 
-            # resp_data = self.login(request=request)
+            default_home =HomesManagement().add_house({idf.NAME:"My Home", idf.OBJ_ADDRESS: 'My Address', idf.OBJ_ROOMS: [{idf.OBJ_TYPE: 2, idf.NAME: "My Room"}]})
+            home_access = HomeUserAccessManagement().add_user_house(userId=user.id, homeId=default_home.id, role=1, status=1) # Add User to Home 
+            resp_data = self.login(request=request)
             
         except Exception as error:
             print("[Error]", error)
@@ -141,12 +139,31 @@ class UserManagement(Repository):
         return resp_data
     
     
+    def createUser(self, request):
+        resp_data={}
+        data_obj = {
+            idf.OBJ_FIRST_NAME: request[idf.OBJ_FIRST_NAME],
+            idf.OBJ_LAST_NAME: request[idf.OBJ_LAST_NAME],
+            idf.OBJ_USERNAME: request[idf.OBJ_USERNAME],
+            idf.OBJ_PASSWORD: request[idf.OBJ_PASSWORD],
+            idf.ROLE: request[idf.OBJ_ROLE] or 0,
+        }
+        try:
+            user = super().save(data_obj)
+            default_home =HomesManagement().add_house({idf.NAME:"My Home", idf.OBJ_ADDRESS: 'My Address', idf.OBJ_ROOMS: [{idf.OBJ_TYPE: 2, idf.NAME: "My Room"}]})
+            HomeUserAccessManagement().add_user_house(userId=user.id, homeId=default_home.id, role=1, status=1) # Add User to Home 
+            
+        except Exception as error:
+            print("[Error]", error)
+            raise error 
+        return resp_data
+    
 
     def deleteUser(self, userId):
         resp_data = {}
         try:
             home_access_mgnt = HomeUserAccessManagement()
-            home_access_mgnt.delete_user_access(userId=userId)
+            home_access_mgnt.delete_all_user_access(userId=userId)
 
             criteria = QueryFilter(id=userId)
             response = super().delete(criteria)

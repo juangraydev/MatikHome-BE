@@ -19,6 +19,14 @@ urlpatterns = [
     path('<str:home_id>/', views.HomeAPI.as_view()),
 
 
+    ## Member APIs
+    ## [PUT] [POST]
+    path('user/<str:home_id>/', views.UserAPI.as_view()),
+    path('<str:home_id>/user/<str:member_id>/', views.UserAPI.as_view()),
+    ##  [DELETE]
+    # path('user/<str:user_id>/', views.UserAPI.as_view()),
+    
+
 
 
 

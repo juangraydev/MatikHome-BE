@@ -15,7 +15,7 @@ import uuid
 
 from core.util import common
 from core.auth.token_authentication import TokenAuthentication
-from homes.management import *
+# from homes.management import HomesManagement
 
 class DevicesManagement(Repository):
     """
@@ -66,9 +66,9 @@ class DevicesManagement(Repository):
 
 
         return resp_data
-
     
     def find_all(self):
+        from homes.management import HomesManagement
         resp_data = []
         home_management = HomesManagement()
         channel_management = ChannelsManagement()
@@ -104,8 +104,8 @@ class DevicesManagement(Repository):
         return resp_data
     
     def find_by_all_homeId(self, home_id):
+        from homes.management import RoomManagement
         resp_data = []
-        
         criteria = []
         try:
             
@@ -118,14 +118,15 @@ class DevicesManagement(Repository):
                 channel_management = ChannelsManagement()
                 channel_resp = channel_management.find_by_device_id(device_id=device['id'])
                 for channel in channel_resp:
+                    room_management = RoomManagement()
+                    room = room_management.find_by_id(id=channel['room'])
                     channel['id'] = str(channel['id'])
                     channel['device'] = str(channel['device'])
-                    channel['room'] = str(channel['room'])
-
+                    channel['key'] = str(device['key'])
+                    channel['room'] = []
+                    if(len(room)):
+                        channel['room'] = room[0]
                     resp_data.append(channel)
-
-            print("channel_resp",resp_data)
-                
 
         except Exception as error:
             print("[Error] Devices Not FOund")
@@ -162,8 +163,25 @@ class DevicesManagement(Repository):
 
         return device_id
 
+    def add_device_home(self, home_id, device_key): 
+        try: 
+            device = DevicesManagement().find_by_key(key=device_key)  
+            device['home_id'] = home_id
+            DevicesManagement().update_device(data=device)
+        except Exception as err:
+            print(err)
+
+    def remove_device_home(self, device_key):
+        try:
+            device = DevicesManagement().find_by_key(key=device_key)  
+            device['home_id'] = None
+            DevicesManagement().update_device(data=device)
+        except Exception as err:
+            print(err)
+    
 
 class ChannelsManagement(Repository):
+    
     """
     Handles CRUD Logic Functionalities for Channel
     """
@@ -179,8 +197,6 @@ class ChannelsManagement(Repository):
     def find_by_device_id(self, device_id):
         criteria = []
         criteria = QueryFilter(device=device_id)
-        
-         
         response = super().find_by_criteria(criteria)
         channel_resp = common.get_value(idf.SERIALIZED, response)
         return channel_resp
@@ -247,3 +263,18 @@ class ChannelsManagement(Repository):
             print(err)
 
         return device_id
+    
+
+    def updateChannel(self, id, data):
+        try:
+            temp_data = {
+                'name': data['name'],
+                'room': data['room']
+            }
+            criteria = QueryFilter(id=id)
+            response = self.find_by_criteria(criteria)
+            instance = common.get_value(idf.INSTANCES, response)[0]
+            update_save = super().update(temp_data, instance)
+            
+        except Exception as err:
+            print(err)

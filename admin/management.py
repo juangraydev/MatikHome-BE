@@ -10,7 +10,7 @@ import json
 from django.conf import settings
 from core.util.custom_exceptions import *
 
-from homes.management import HomesManagement 
+from homes.management import *
 
 from core.util import common
 from core.auth.token_authentication import TokenAuthentication
@@ -31,3 +31,16 @@ class AdminManagement(Repository):
         resp_data = homes_management.find_all()
         
         return resp_data
+    
+    def add_home(self, data):
+        homes_management = HomesManagement()
+        homes_management.add_house(data=data)
+
+    def edit_home(self, data):
+        homes_management = HomesManagement()
+        homes_management.add_house(data=data)
+
+
+    def delete_home(self, id):
+        homes_mngt = HomesManagement()
+        homes_mngt.delete_home(id=id)

@@ -10,6 +10,7 @@ import json
 from django.conf import settings
 from core.util.custom_exceptions import *
 
+from devices.management import *
 
 from core.util import common
 from core.auth.token_authentication import TokenAuthentication
@@ -33,9 +34,11 @@ class HomesManagement(Repository):
         house_list = common.get_value(idf.SERIALIZED, response)[0]
         rooms_list = RoomManagement().get_rooms_list_by_house(house_list[idf.OBJ_ID])
         member_list = HomeUserAccessManagement().get_home_members(house_list[idf.OBJ_ID])
+        device_list = DevicesManagement().find_by_all_homeId(house_list[idf.OBJ_ID])
 
         house_list[idf.OBJ_ROOMS] = rooms_list
         house_list[idf.OBJ_MEMBERS] = member_list
+        house_list[idf.OBJ_DEVICES] = device_list
        
         # get_rooms_list_by_house
         return house_list
@@ -72,6 +75,23 @@ class HomesManagement(Repository):
             raise exception
         return updated
     
+    def delete_home(self, id):
+        home_access_mgnt = HomeUserAccessManagement()
+        room_mgnt = RoomManagement()
+        device_mgnt = DevicesManagement()
+        home_access_mgnt.delete_all_home_access(homeId=id)
+        room_mgnt.delete_home_room(id=id)
+
+        devices = device_mgnt.find_by_all_homeId(home_id=id)
+
+        # for device in devices:
+        #     device_mgnt.remove_device_home
+        
+        criteria = QueryFilter(id=id)
+        super().delete(criteria)
+        
+
+
     def find_all(self):
         resp_data = []
         try:
@@ -145,6 +165,15 @@ class RoomManagement(Repository):
             
         return resp_data
 
+    def find_by_id(self, id):
+        criteria = QueryFilter(id=id)
+        response = super().find_by_criteria(criteria)
+        return common.get_value(idf.SERIALIZED, response)
+    
+    def delete_home_room(self, id):
+        criteria = QueryFilter(home=id)
+        response = super().delete(criteria)
+
 
 class HomeUserAccessManagement(Repository):
     
@@ -185,7 +214,8 @@ class HomeUserAccessManagement(Repository):
                 member_data = {
                     idf.OBJ_ID: member['id'],
                     'full_name': member['first_name'] + " " + member['last_name'],
-                    'role': member_access['role']
+                    'role': member_access['role'],
+                    'status': member_access['status']
                 }
                 member_list.append(member_data)
         
@@ -195,12 +225,14 @@ class HomeUserAccessManagement(Repository):
 
         return member_list
 
-    def add_user_house(self, userId, homeId):
+    def add_user_house(self, userId, homeId, role=0, status=0):
         saved = {}
         try:
             save_data = {
                 'user': userId,
-                'home': homeId
+                'home': homeId,
+                'role': role,
+                'status': status
             }
             saved = super().save(save_data)
         except Exception as exception:
@@ -209,10 +241,64 @@ class HomeUserAccessManagement(Repository):
         
         return saved
     
-    def delete_user_access(self, userId): 
+    def delete_user_access(self, homeId, userId): 
+        try:
+            criteria = QueryFilter(user=userId, home=homeId)
+            response = super().delete(criteria)
+            response = common.get_value(idf.SERIALIZED, response)
+        except Exception as err:
+            print("[User Access]", err)
+
+
+    def delete_all_user_access(self, userId): 
         try:
             criteria = QueryFilter(user=userId)
             response = super().delete(criteria)
             response = common.get_value(idf.SERIALIZED, response)
         except Exception as err:
             print("[User Access]", err)
+
+    def delete_all_home_access(self, homeId): 
+        try:
+            criteria = QueryFilter(home=homeId)
+            response = super().delete(criteria)
+            response = common.get_value(idf.SERIALIZED, response)
+        except Exception as err:
+            print("[User Access]", err)
+
+
+    def invite_home_member(self, home_id, user):
+        saved = {}
+        try:
+            save_data = {
+                'user': user[idf.OBJ_ID],
+                'home': home_id,
+                'role': 0,
+                'status': 0
+            }
+            saved = super().save(save_data)
+        except Exception as exception:
+            print("[Error]", exception)
+            raise exception
+        
+        return saved
+
+    def update_user_role(self, home_id, user):
+        saved = {}
+        try:
+            save_data = {
+                'user': user[idf.OBJ_ID],
+                'home': home_id,
+                'role': user[idf.ROLE],
+                'status': user['status']
+            }
+            criteria = QueryFilter(home=home_id, user=user[idf.OBJ_ID])
+            response = self.find_by_criteria(criteria)
+            instance = common.get_value(idf.INSTANCES, response)[0]
+            saved = self.update(save_data, instance)
+
+        except Exception as exception:
+            print("[Error]", exception)
+            raise exception
+        
+        return saved

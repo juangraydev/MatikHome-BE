@@ -42,10 +42,39 @@ class DeviceHomeAPI(APIView):
                                        resp_data=device_resp,
                                        resp_details=resp_details)
         return Response(resp_payload, status=status.HTTP_200_OK)
+    
+    def post(self, request, home_id):
+        DevicesManagement().add_device_home(home_id=home_id, device_key=request.data['key'])
+        resp_details = create_response_details()
+        resp_payload = create_response(
+                                       resp_data={},
+                                       resp_details=resp_details)
+        return Response(resp_payload, status=status.HTTP_200_OK)
+    
+    
+    def delete(self, request, home_id, device_key):
+        DevicesManagement().remove_device_home(device_key=device_key)
+        resp_details = create_response_details()
+        resp_payload = create_response(
+                                       resp_data={},
+                                       resp_details=resp_details)
+        return Response(resp_payload, status=status.HTTP_200_OK)
 
+
+class ChannelAPI(APIView):
+
+    def put(self, request, id):
+        ChannelsManagement().updateChannel(id=id, data=request.data)
+        resp_details = create_response_details()
+        resp_payload = create_response(
+                                       resp_data={},
+                                       resp_details=resp_details)
+        return Response(resp_payload, status=status.HTTP_200_OK)
+    
 class DeviceESPAPI(APIView):
     
     def get(self, request):
+        
         key = self.request.query_params['key']
         device_management = DevicesManagement()
         channel_management = ChannelsManagement()

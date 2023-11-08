@@ -98,15 +98,15 @@ CHANNEL_LAYERS = {
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'railway',
-        'USER': 'root',
-        'PASSWORD': '3zjhXq8tOTpXG2XwGdH0',  # TODO: this should be retrieved
-        # from environment variable during production
-        'HOST': 'containers-us-west-111.railway.app',
-        'PORT': '7746'
-    },
+   'default': {
+       'ENGINE': 'django.db.backends.mysql',
+       'NAME': 'railway',
+       'USER': 'root',
+       'PASSWORD': '3zjhXq8tOTpXG2XwGdH0',  # TODO: this should be retrieved
+       # from environment variable during production
+       'HOST': 'containers-us-west-111.railway.app',
+       'PORT': '7746'
+   },
 }
 
 # DATABASES = {

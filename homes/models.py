@@ -39,6 +39,7 @@ class HomeUserAccess(models.Model, ModelToDictionary):
     user = models.ForeignKey(User, models.DO_NOTHING)
     home = models.ForeignKey(Homes, models.DO_NOTHING)
     role = models.BooleanField(default=0)
+    status = models.BooleanField(default=0)
 
 
     class Meta:

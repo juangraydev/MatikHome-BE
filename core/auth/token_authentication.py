@@ -36,6 +36,9 @@ class TokenAuthentication():
         data = {}
         # Append expiry on token
         data[idf.OBJ_ID] = user[idf.OBJ_ID]
+        data[idf.OBJ_FIRST_NAME] = user[idf.OBJ_FIRST_NAME]
+        data[idf.OBJ_LAST_NAME] = user[idf.OBJ_LAST_NAME]
+        data[idf.OBJ_USERNAME] = user[idf.OBJ_USERNAME]
         data[idf.OBJ_ROLE] = user[idf.OBJ_ROLE]
         data[idf.OBJ_EXP] = self.set_expiry()
 
