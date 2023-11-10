@@ -10,6 +10,7 @@ class Devices(models.Model, ModelToDictionary):
     
     id = models.AutoField(primary_key=True, editable=False)
     key = models.CharField(max_length=100, null=False, unique=True)
+    type = models.CharField(max_length=100, null=True)
     home = models.ForeignKey(Homes, models.DO_NOTHING, null=True)
 
     class Meta:

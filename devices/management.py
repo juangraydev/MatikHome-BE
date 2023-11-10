@@ -10,6 +10,7 @@ import json
 from django.conf import settings
 from core.util.custom_exceptions import *
 import uuid
+# from socketIO_client import SocketIO
 
 
 
@@ -33,14 +34,22 @@ class DevicesManagement(Repository):
         saved = {}
         channel_mgnt = ChannelsManagement()
         try:
-            save_data = {
+            save_data = {       
                 'key': data['key'],
-                'home': data['home_id']
+                'home': data['home_id'],
+                'type': data['device_type']
+
             }
             saved = super().save(save_data)
 
+            if(data['device_type'] == 1):
+                channel_mgnt.createTempChannel(saved)
+            elif(data['device_type'] == 2):
+                channel_mgnt.createChannels(saved, data['channel'])
+            elif(data['device_type'] == 3):
+                channel_mgnt.createChannels(saved, data['channel'])
 
-            channel_mgnt.createChannels(saved, data['channel'])
+            
 
         except Exception as exception:
             print("[Error]", exception)
@@ -103,6 +112,40 @@ class DevicesManagement(Repository):
             raise error
         return resp_data
     
+    def find_by_all_temp_homeId(self, home_id):
+        from homes.management import RoomManagement
+        resp_data = []
+        criteria = []
+        try:
+            
+            criteria = QueryFilter(home=home_id, type=1)
+            
+            response = super().find_by_criteria(criteria)
+            resp_device = common.get_value(idf.SERIALIZED, response)
+
+            for device in resp_device:
+                channel_management = ChannelsManagement()
+                channel_resp = channel_management.find_by_device_id(device_id=device['id'])
+                for channel in channel_resp:
+                    room_management = RoomManagement()
+                    room = room_management.find_by_id(id=channel['room'])
+                    channel['id'] = str(channel['id'])
+                    channel['device'] = str(channel['device'])
+                    channel['key'] = str(device['key'])
+                    channel['status'] = str(channel['status'])
+                    channel['room'] = []
+                    if(len(room)):
+                        channel['room'] = room[0]
+                    resp_data.append(channel)
+
+        except Exception as error:
+            print("[Error] Devices Not FOund")
+            print(error)
+            raise error
+        return resp_data
+    
+
+
     def find_by_all_homeId(self, home_id):
         from homes.management import RoomManagement
         resp_data = []
@@ -200,6 +243,7 @@ class ChannelsManagement(Repository):
         response = super().find_by_criteria(criteria)
         channel_resp = common.get_value(idf.SERIALIZED, response)
         return channel_resp
+    
 
     def update_by_id(self, id, status):
         try: 
@@ -215,6 +259,25 @@ class ChannelsManagement(Repository):
             update_save = super().update(updated, instance)
 
             print("update_save",update_save)
+        except Exception as error:
+            print("error",error)
+
+    def update_temp_by_id(self, id, status):
+        try: 
+            criteria = QueryFilter(device=id)
+            response = self.find_by_criteria(criteria)
+            instance = common.get_value(idf.INSTANCES, response)
+
+            temp = status["temp"]
+            hum = status["hum"]
+            for idx, stat in enumerate(status):
+                print("Data", status[stat])
+                updated={
+                    idf.STATUS: status[stat]
+                }
+                update_save = super().update(updated, instance[idx])
+
+            print("update_save",instance)
         except Exception as error:
             print("error",error)
 
@@ -235,6 +298,29 @@ class ChannelsManagement(Repository):
         channel_resp = common.get_value(idf.SERIALIZED, response)[0]
         return channel_resp
     
+    def createTempChannel(self, device):
+        i = 0
+        try:
+            temp_obj = {
+                'name': 'temperature',
+                'device': str(device.id),
+                'room': '',
+                'status': '0'
+            }
+            super().save(temp_obj)
+
+            
+            hum_obj = {
+                'name': 'huminity',
+                'device': str(device.id),
+                'room': '',
+                'status': '0'
+            }
+            super().save(hum_obj)
+
+        except Exception as error:
+            print("[Error]",error)
+            raise error
 
     def createChannels(self, device, count):
         i = 0
