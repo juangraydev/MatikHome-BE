@@ -165,6 +165,7 @@ class DevicesManagement(Repository):
                     room = room_management.find_by_id(id=channel['room'])
                     channel['id'] = str(channel['id'])
                     channel['device'] = str(channel['device'])
+                    channel['type'] = int(channel['type'])
                     channel['key'] = str(device['key'])
                     channel['room'] = []
                     if(len(room)):

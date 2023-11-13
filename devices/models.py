@@ -25,6 +25,7 @@ class Channels(models.Model, ModelToDictionary):
     id = models.AutoField(primary_key=True, unique=True, editable=False)
     name = models.CharField(max_length=100, null=True)
     device = models.ForeignKey(Devices, models.DO_NOTHING)
+    type = models.IntegerField(default=0)
     room = models.ForeignKey(Rooms, models.DO_NOTHING, null=True)
     status = models.CharField(max_length=1024, null=True)
 
