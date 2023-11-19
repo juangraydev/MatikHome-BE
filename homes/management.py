@@ -12,6 +12,8 @@ from core.util.custom_exceptions import *
 
 from devices.management import *
 
+# from user.management import *
+
 from core.util import common
 from core.auth.token_authentication import TokenAuthentication
 
@@ -28,6 +30,7 @@ class HomesManagement(Repository):
         super().__init__(module=module)
 
     def get_house_list_by_id(self, id):
+        from user.management import UserManagement 
         house_list = {}
         criteria = QueryFilter(id=id)
         response = super().find_by_criteria(criteria)
@@ -36,6 +39,9 @@ class HomesManagement(Repository):
         member_list = HomeUserAccessManagement().get_home_members(house_list[idf.OBJ_ID])
         device_list = DevicesManagement().find_by_all_homeId(house_list[idf.OBJ_ID])
 
+        
+        if house_list[idf.OBJ_CREATED_BY]:
+            house_list[idf.OBJ_CREATED_BY] = UserManagement().find_by_id(user_id=house_list[idf.OBJ_CREATED_BY])
         house_list[idf.OBJ_ROOMS] = rooms_list
         house_list[idf.OBJ_MEMBERS] = member_list
         house_list[idf.OBJ_DEVICES] = device_list
@@ -48,7 +54,8 @@ class HomesManagement(Repository):
         try:
             save_data= {    
                 idf.OBJ_NAME: data['name'],
-                idf.OBJ_ADDRESS: data['address']
+                idf.OBJ_ADDRESS: data['address'],
+                idf.OBJ_CREATED_BY: str(data["created_by"])
             }
             saved = super().save(data=save_data)
             # RoomManagement().add_rooms_by_house()
@@ -101,7 +108,7 @@ class HomesManagement(Repository):
                 resp_home = self.get_house_list_by_id(home[idf.OBJ_ID])
                 resp_data.append(resp_home)
         except Exception as error:
-            print("[Error][Home]: ${error}")
+            print("[Error][Home]: ", error)
         
         return resp_data
 

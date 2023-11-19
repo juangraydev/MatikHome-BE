@@ -82,6 +82,7 @@ OBJ_MEMBERS = "members"
 OBJ_DEVICES = "devices"
 OBJ_NAME = "name"
 OBJ_ADDRESS = "address"
+OBJ_CREATED_BY = "created_by"
 
 OBJ_USER_ID = "user_id"
 OBJ_HOME_ID = "home_id"

@@ -1,6 +1,7 @@
 django==3.2
 djangorestframework
 pyyaml
+socketIO-client
 requests
 django-cors-headers
 mysqlclient==2.1.1

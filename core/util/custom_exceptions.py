@@ -81,3 +81,29 @@ class RoomDeleteError(BaseException):
         self.err_resp[idf.ERR][idf.STATUS_CODE] = 409
 
         super(BaseException, self).__init__(self.err_resp, *args, **kwargs)
+
+
+class DeviceNotFoundError(BaseException):
+    def __init__(self, *args, **kwargs):
+        self.err_resp[idf.ERR][idf.ERR_CODE] = "10"
+        self.err_resp[idf.ERR][idf.ERR_MSG_ID] = "ERR_DEVICE_NOT_FOUND"
+        self.err_resp[idf.ERR][idf.ERR_MSG] = "Device not found"
+        self.err_resp[idf.ERR][idf.ERR_DETAIL] = "Please try again"
+        self.err_resp[idf.ERR][idf.STATUS_CODE] = 500
+
+        super(BaseException, self).__init__(self.err_resp, *args, **kwargs)
+
+
+class UserNotFoundError(BaseException):
+    def __init__(self, *args, **kwargs):
+        self.err_resp[idf.ERR][idf.ERR_CODE] = "10"
+        self.err_resp[idf.ERR][idf.ERR_MSG_ID] = "ERR_USER_NOT_FOUND"
+        self.err_resp[idf.ERR][idf.ERR_MSG] = "User is invalid or does not exist"
+        self.err_resp[idf.ERR][idf.ERR_DETAIL] = "Please try again"
+        self.err_resp[idf.ERR][idf.STATUS_CODE] = 500
+
+        super(BaseException, self).__init__(self.err_resp, *args, **kwargs)
+
+
+
+

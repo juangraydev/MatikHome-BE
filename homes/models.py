@@ -9,6 +9,7 @@ class Homes(models.Model, ModelToDictionary):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=150, default="")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         managed = True

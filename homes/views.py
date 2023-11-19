@@ -45,11 +45,10 @@ class HomeAPI(APIView):
         homes_management = HomesManagement()
         token_auth = TokenAuthentication()
         access = HomeUserAccessManagement()
-        home_name = request.data['name']
         token_key = token_auth.extract_bearer(request.META[idf.HTTP_AUTHORIZATION])
         user_instance =token_auth.decode_token(token_key)
         home = homes_management.add_house(data=request.data)
-        access_resp = access.add_user_house(userId=user_instance['id'], homeId=home.id)
+        access_resp = access.add_user_house(userId=user_instance['id'], homeId=home.id, role=1, status=1)
       
         resp_details = create_response_details()
         resp_payload = create_response(
@@ -61,6 +60,15 @@ class HomeAPI(APIView):
         homes_management = HomesManagement()
         home_data = request.data
         home = homes_management.edit_house(data=home_data)
+        resp_details = create_response_details()
+        resp_payload = create_response(
+                                       resp_data={},
+                                       resp_details=resp_details)
+        return Response(resp_payload, status=status.HTTP_200_OK)
+    
+    def delete(self, request, home_id):
+        homes_management = HomesManagement()
+        home = homes_management.delete_home(id=home_id)
         resp_details = create_response_details()
         resp_payload = create_response(
                                        resp_data={},

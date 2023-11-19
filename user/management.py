@@ -36,7 +36,7 @@ class UserManagement(Repository):
             resp_data = common.get_value(idf.SERIALIZED, response)[0]
         except Exception as error:
             print("[Error] Username not Found", error)
-            raise HTTP401Error
+            raise UserNotFoundError
 
         return resp_data
     
@@ -129,7 +129,7 @@ class UserManagement(Repository):
         }
         try:
             user = super().save(data_obj)
-            default_home =HomesManagement().add_house({idf.NAME:"My Home", idf.OBJ_ADDRESS: 'My Address', idf.OBJ_ROOMS: [{idf.OBJ_TYPE: 2, idf.NAME: "My Room"}]})
+            default_home =HomesManagement().add_house({idf.NAME:"My Home", idf.OBJ_ADDRESS: 'My Address', "created_by": user.id,idf.OBJ_ROOMS: [{idf.OBJ_TYPE: 2, idf.NAME: "My Room"}]})
             home_access = HomeUserAccessManagement().add_user_house(userId=user.id, homeId=default_home.id, role=1, status=1) # Add User to Home 
             resp_data = self.login(request=request)
             

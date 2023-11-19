@@ -37,17 +37,19 @@ class DevicesManagement(Repository):
             save_data = {       
                 'key': data['key'],
                 'home': data['home_id'],
-                'type': data['device_type']
+                'type': data['type']
 
             }
             saved = super().save(save_data)
 
-            if(data['device_type'] == 1):
-                channel_mgnt.createTempChannel(saved)
-            elif(data['device_type'] == 2):
-                channel_mgnt.createChannels(saved, data['channel'])
-            elif(data['device_type'] == 3):
-                channel_mgnt.createChannels(saved, data['channel'])
+            if(data['type'] == 1):
+                channel_mgnt.create_temp_device(saved)
+            elif(data['type'] == 2):
+                channel_mgnt.create_security_device(saved.id)
+            elif(data['type'] == 3):
+                channel_mgnt.createChannels(saved, 2)
+            elif(data['type'] == 4):
+                channel_mgnt.createChannels(saved, 4)
 
             
 
@@ -56,19 +58,33 @@ class DevicesManagement(Repository):
             raise exception
         
         return saved
-    
+
     def update_device(self, data):
         resp_data = []
         try:
             criteria = QueryFilter(id=data['id'])
             response = super().find_by_criteria(criteria)
             instance = common.get_value(idf.INSTANCES, response)[0]
+            oldType = int(instance.type)
             save_data = {
                 'id': data['id'],
                 'key': data['key'],
-                'home': data['home_id']
+                'home': "" if not data.get('home_id') else data['home_id'],
+                'type': data['type']
             }
             resp_data = super().update(save_data, instance)
+
+            if(data['type'] != oldType):
+                channel_mgnt = ChannelsManagement()
+                channel_mgnt.deleteChannel(data['id'])
+                if(data['type'] == 1):
+                    channel_mgnt.create_temp_device(resp_data)
+                elif(data['type'] == 2):
+                    channel_mgnt.create_security_device(resp_data.id)
+                elif(data['type'] == 3):
+                    channel_mgnt.createChannels(resp_data, 2)
+                elif(data['type'] == 4):
+                    channel_mgnt.createChannels(resp_data, 4)
 
         except Exception as err:
             raise err
@@ -151,15 +167,15 @@ class DevicesManagement(Repository):
         resp_data = []
         criteria = []
         try:
-            
             criteria = QueryFilter(home=home_id)
-            
             response = super().find_by_criteria(criteria)
             resp_device = common.get_value(idf.SERIALIZED, response)
 
             for device in resp_device:
+                device_data = device
                 channel_management = ChannelsManagement()
                 channel_resp = channel_management.find_by_device_id(device_id=device['id'])
+                channels = []
                 for channel in channel_resp:
                     room_management = RoomManagement()
                     room = room_management.find_by_id(id=channel['room'])
@@ -170,7 +186,10 @@ class DevicesManagement(Repository):
                     channel['room'] = []
                     if(len(room)):
                         channel['room'] = room[0]
-                    resp_data.append(channel)
+                    channels.append(channel)
+
+                device['channels'] = channels
+                resp_data.append(device_data)
 
         except Exception as error:
             print("[Error] Devices Not FOund")
@@ -209,17 +228,36 @@ class DevicesManagement(Repository):
 
     def add_device_home(self, home_id, device_key): 
         try: 
-            device = DevicesManagement().find_by_key(key=device_key)  
-            device['home_id'] = home_id
-            DevicesManagement().update_device(data=device)
+            criteria = QueryFilter(key=device_key)
+            response = super().find_by_criteria(criteria)
+            instance = common.get_value(idf.INSTANCES, response)[0]
+
+            save_data = {
+                'id': instance.id,
+                'key': instance.key,
+                'home': home_id,
+                'type': instance.type
+            }
+            # DevicesManagement().update_device(data=device)
+            resp_data = super().update(save_data, instance)
         except Exception as err:
             print(err)
+            raise DeviceNotFoundError
 
     def remove_device_home(self, device_key):
-        try:
-            device = DevicesManagement().find_by_key(key=device_key)  
-            device['home_id'] = None
-            DevicesManagement().update_device(data=device)
+        try: 
+            criteria = QueryFilter(key=device_key)
+            response = super().find_by_criteria(criteria)
+            instance = common.get_value(idf.INSTANCES, response)[0]
+
+            save_data = {
+                'id': instance.id,
+                'key': instance.key,
+                'home': "",
+                'type': instance.type
+            }
+            # DevicesManagement().update_device(data=device)
+            resp_data = super().update(save_data, instance)
         except Exception as err:
             print(err)
     
@@ -299,29 +337,44 @@ class ChannelsManagement(Repository):
         channel_resp = common.get_value(idf.SERIALIZED, response)[0]
         return channel_resp
     
-    def createTempChannel(self, device):
-        i = 0
+    def create_temp_device(self, device):
         try:
             temp_obj = {
                 'name': 'temperature',
                 'device': str(device.id),
                 'room': '',
-                'status': '0'
+                'status': '0',
+                'type': 1
             }
             super().save(temp_obj)
 
-            
             hum_obj = {
                 'name': 'huminity',
                 'device': str(device.id),
                 'room': '',
-                'status': '0'
+                'status': '0',
+                'type': 2
             }
             super().save(hum_obj)
 
         except Exception as error:
-            print("[Error]",error)
+            print("[Error][Device][Thermostat]: ", error)
             raise error
+
+    def create_security_device(self, device_id):
+        try: 
+            saved_data = {
+                'name': 'door',
+                'device': str(device_id),
+                'room': '',
+                'status': '0',
+                'type': 3
+            }
+            super().save(saved_data)
+        except Exception as error:
+            print("[Error][Device][Door]: ", error)
+            raise error
+            
 
     def createChannels(self, device, count):
         i = 0
@@ -332,7 +385,8 @@ class ChannelsManagement(Repository):
                     'name': 'channel '+str(i),
                     'device': str(device.id),
                     'room': '',
-                    'status': '0'
+                    'status': '0',
+                    'type': 4
                 }
                 super().save(saved_data)
         except Exception as error:
@@ -356,12 +410,32 @@ class ChannelsManagement(Repository):
         try:
             temp_data = {
                 'name': data['name'],
-                'room': data['room']
+                'room': data['room'],
+                'type': data['type']
             }
-            criteria = QueryFilter(id=id)
-            response = self.find_by_criteria(criteria)
-            instance = common.get_value(idf.INSTANCES, response)[0]
-            update_save = super().update(temp_data, instance)
+            
+            if(data['type'] == 1 or data['type'] == 2):
+                criteria = QueryFilter(device=data['device'])
+                response = self.find_by_criteria(criteria)
+                channels = common.get_value(idf.INSTANCES, response)
+                for channel in channels:
+                    if(id == channel.id):
+                        criteria = QueryFilter(id=id)
+                        response = self.find_by_criteria(criteria)
+                        instance = common.get_value(idf.INSTANCES, response)[0]
+                        super().update(temp_data, instance)
+                    else:
+                        criteria = QueryFilter(id=channel.id)
+                        response = self.find_by_criteria(criteria)
+                        instance = common.get_value(idf.INSTANCES, response)[0]
+                        super().update({'room': data['room']}, instance)
+            else:
+                criteria = QueryFilter(id=id)
+                response = self.find_by_criteria(criteria)
+                instance = common.get_value(idf.INSTANCES, response)[0]
+                super().update(temp_data, instance)
+
+            
             
         except Exception as err:
             print(err)
