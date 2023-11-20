@@ -405,6 +405,28 @@ class ChannelsManagement(Repository):
 
         return device_id
     
+    def deleteChannelRoom(self, device_id):
+        try:
+            updated={}
+            criteria = QueryFilter(device=device_id)
+            response = super().find_by_criteria(criteria)
+            instances = common.get_value(idf.INSTANCES, response)
+            for channel in instances:
+                data = common.get_value(idf.SERIALIZED, channel)
+                temp_data = {
+                    'name': channel.name,
+                    'room': '',
+                    'type': channel.type
+                }
+                update_save = super().update(temp_data, channel)
+            
+            print("Successfully Removing Device Channel in Home:", device_id)
+
+        except Exception as err:
+            print(err)
+
+        return device_id
+    
 
     def updateChannel(self, id, data):
         try:

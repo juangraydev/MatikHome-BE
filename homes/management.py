@@ -55,8 +55,11 @@ class HomesManagement(Repository):
             save_data= {    
                 idf.OBJ_NAME: data['name'],
                 idf.OBJ_ADDRESS: data['address'],
-                idf.OBJ_CREATED_BY: str(data["created_by"])
+                idf.OBJ_CREATED_BY:  ""
             }
+            if idf.OBJ_CREATED_BY in data:
+                save_data[idf.OBJ_CREATED_BY] = data[idf.OBJ_CREATED_BY]
+
             saved = super().save(data=save_data)
             # RoomManagement().add_rooms_by_house()
             for room in data['rooms']:
@@ -86,13 +89,15 @@ class HomesManagement(Repository):
         home_access_mgnt = HomeUserAccessManagement()
         room_mgnt = RoomManagement()
         device_mgnt = DevicesManagement()
+        channel_mgnt = ChannelsManagement()
         home_access_mgnt.delete_all_home_access(homeId=id)
+        devices = device_mgnt.find_by_all_homeId(home_id=id)
+        for device in devices:
+            channel_mgnt.deleteChannelRoom(device_id=device['id'])
+            device_mgnt.remove_device_home(device_key=device['key'])
+
         room_mgnt.delete_home_room(id=id)
 
-        devices = device_mgnt.find_by_all_homeId(home_id=id)
-
-        # for device in devices:
-        #     device_mgnt.remove_device_home
         
         criteria = QueryFilter(id=id)
         super().delete(criteria)
@@ -194,7 +199,7 @@ class HomeUserAccessManagement(Repository):
     def get_user_house(self, userId):
         house_list = []
         try:
-            criteria = QueryFilter(user=str(userId))
+            criteria = QueryFilter(user=str(userId), status=1)
             response = super().find_by_criteria(criteria)
             user_home_access_list = common.get_value(idf.SERIALIZED, response)
             for house in user_home_access_list:
@@ -206,6 +211,42 @@ class HomeUserAccessManagement(Repository):
             raise err
         return house_list
     
+    def get_user_house_invite(self, userId):
+        house_list = []
+        try:
+            criteria = QueryFilter(user=str(userId), status=0)
+            response = super().find_by_criteria(criteria)
+            user_home_access_list = common.get_value(idf.SERIALIZED, response)
+            for house in user_home_access_list:
+                home_temp = HomesManagement().get_house_list_by_id(house['home'])
+                house_list.append(home_temp) 
+
+        except Exception as err:
+            print(err)
+            raise err
+        return house_list
+    
+    def update_user_house_invite(self, userId, data, status):
+        saved = {}
+        try:
+            criteria = QueryFilter(home=data['id'], user=userId)
+            response = self.find_by_criteria(criteria)
+            instance = common.get_value(idf.INSTANCES, response)[0]
+            updated = common.get_value(idf.SERIALIZED, response)[0]
+
+            if status == "accept":
+                updated['status'] = 1
+            else:
+                updated['status'] = 0
+
+            saved = self.update(updated, instance)
+
+        except Exception as exception:
+            print("[Error]", exception)
+            raise exception
+        
+        return saved
+
     def get_home_members(self, homeId):
         from user.management import UserManagement 
         member_list = []

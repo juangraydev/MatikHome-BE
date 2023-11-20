@@ -17,6 +17,10 @@ urlpatterns = [
     path('', views.HomeAPI.as_view()),
     ## [DELETE]
     path('<str:home_id>/', views.HomeAPI.as_view()),
+    
+
+    path('notification/invite/', views.HomeNotification.as_view()),
+    path('notification/invite/<str:invite_status>/', views.HomeNotification.as_view()),
 
 
     ## Member APIs
