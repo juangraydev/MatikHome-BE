@@ -102,10 +102,10 @@ DATABASES = {
        'ENGINE': 'django.db.backends.mysql',
        'NAME': 'railway',
        'USER': 'root',
-       'PASSWORD': '3zjhXq8tOTpXG2XwGdH0',  # TODO: this should be retrieved
+       'PASSWORD': 'gfaaGBhc25-F6-fgdhECGehDaCe54A1A',  # TODO: this should be retrieved
        # from environment variable during production
-       'HOST': 'containers-us-west-111.railway.app',
-       'PORT': '7746'
+       'HOST': 'viaduct.proxy.rlwy.net',
+       'PORT': '39837'
    },
 }
 
