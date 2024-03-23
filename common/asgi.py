@@ -30,12 +30,5 @@ django_asgi_app = get_asgi_application()
 import devices.routing
 
 application = ProtocolTypeRouter({
-  "http": django_asgi_app,
-  "websocket": AllowedHostsOriginValidator(
-        AuthMiddlewareStack(
-            URLRouter(
-                devices.routing.websocket_urlpatterns
-            )
-        )
-    ),
+  "http": django_asgi_app
 })

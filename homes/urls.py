@@ -30,10 +30,6 @@ urlpatterns = [
     ##  [DELETE]
     # path('user/<str:user_id>/', views.UserAPI.as_view()),
     
-
-
-
-
     ## home list
     # path('<str:home_id>/', views.HomeAPI.as_view()),
 
